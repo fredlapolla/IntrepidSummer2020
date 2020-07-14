@@ -1,0 +1,180 @@
+---
+title: "INTREPID Data Visualization"
+author: "Fred LaPolla"
+date: "7/14/2020"
+output: slidy_presentation
+---
+
+```{r setup, include=TRUE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+***
+
+## Pulling in the data
+
+```{r}
+library(RCurl)
+url <- getURL("https://raw.githubusercontent.com/fredwillie/RScience2020/master/NYC_HANES_DIAB.csv")
+nyc <- read.csv(text = url)
+names(nyc)
+```
+
+***
+
+## A practical use case for exploratory data visualization
+
+One of the most common things we will need to do is assess our data's distribution. If our data is normally distributed this will help us decide what tests we are able to fun, for example a T Test for normally distributed vs a Mann-Whitney (independent samples) or a Wilcoxon Signed Rank Test (dependent samples). 
+
+We can assess this quickly with a histogram:
+
+```{r}
+par(mfrow = c(1,2))
+hist(nyc$CHOLESTEROLTOTAL)
+hist(nyc$CADMIUM)
+```
+
+***
+
+Another option that provides good exploratory data is the box plot. The box plot shows the median, upper and lower quartiles and outliers (> 1.5*interquartile range). If it looks symmetric, that indicates normality, where if the mean is greater or less than the median that would indicate skew.
+
+```{r}
+boxplot(nyc$CHOLESTEROLTOTAL)
+```
+
+***
+
+## Boxplots for comparisons
+
+This really shines when we are making comparisons:
+
+```{r}
+boxplot(nyc$CHOLESTEROLTOTAL ~ nyc$GENDER)
+```
+
+***
+
+## Boxplots Continued
+
+You can also set notch to true for a very quick sense of if the two groups are likley to be "significantly" different. 
+
+```{r}
+boxplot(nyc$CHOLESTEROLTOTAL ~ nyc$GENDER, notch = TRUE)
+```
+
+***
+
+## QQ Plots
+
+A third option is a QQ Plot, or quantile quantile plot. This plots expected vs observed quantiles for normality. The main thing to understand is if it appears to be a straight line on the expected, your data is more normal, where skewed data will deviate from the line. 
+
+```{r}
+par(mfrow=c(1,2))
+qqnorm(nyc$CHOLESTEROLTOTAL)
+qqline(nyc$CHOLESTEROLTOTAL)
+
+qqnorm(nyc$CADMIUM)
+qqline(nyc$CADMIUM)
+```
+
+***
+
+## Back to Mentimeter
+
+*** 
+
+## Visualizing for Presenting
+
+A useful package in R for visualization is called GGPlot2
+
+```{r}
+install.packages("ggplot2", repos = "http://cran.us.r-project.org")
+library(ggplot2)
+```
+
+***
+
+## About GGplot2
+
+Using this package can be non-intuitive at first, because it plots in a series of **layers**
+
+For the first layer we must assign an aesthetic value to our data. Think of this as our X and Y values, if color means something etc:
+
+```{r}
+plot <- ggplot(nyc, aes(x = SPAGE, y = CHOLESTEROLTOTAL))
+plot
+```
+
+When we run this we just get the frame for a plot.
+
+***
+
+## Ggplot Continued: Geoms
+
+Once we have assigned the "aesthetic" values (what will be X, what will be Y, etc), we add a layer called Geom. 
+
+Basically the Geom is the "type" of chart: bar, scatter, boxplot, histogram, to name a few.
+
+Check out the Cheatsheet in Help to see a handy guide to all the Geoms. 
+
+These can be added with "+ geom_TYPEOFGEOM()"
+
+```{r}
+plot + geom_point()
+```
+
+***
+
+So now we can add in features:
+
+```{r}
+nyc$GENDER <- factor(nyc$GENDER, levels = 1:2, labels = c("Male", "Female"))
+ggplot(nyc, aes(x = SPAGE, y = CHOLESTEROLTOTAL, col = GENDER))+geom_point()
+```
+
+***
+
+## Color Continued
+
+We can also try out color blind friendly palletes to try to match our needs
+
+```{r}
+install.packages("RColorBrewer", repos = "http://cran.us.r-project.org")
+library(RColorBrewer)
+display.brewer.all(colorblindFriendly = TRUE)
+```
+
+```{r}
+
+
+ggplot(nyc, aes(x = SPAGE, y = CHOLESTEROLTOTAL, col = GENDER))+geom_point()+ scale_color_brewer(palette = "Dark2")
+
+```
+
+***
+
+## Themes
+
+We can also update the Theme in ggplot2 to make it easier to view and lessen "visual load." Visual load is a term for how much "noise" our brain has to process before getting to insights. Proponents of this theory tend to favor minimalist designs that focus our attention on the data:
+
+```{r}
+ggplot(nyc, aes(x = SPAGE, y = CHOLESTEROLTOTAL, col = GENDER))+geom_point()+ scale_color_brewer(palette = "Dark2")+theme_minimal()
+```
+
+Compare that to:
+
+```{r}
+ggplot(nyc, aes(x = SPAGE, y = CHOLESTEROLTOTAL, col = GENDER))+geom_point()+ scale_color_brewer(palette = "Dark2") + theme_dark()
+```
+
+***
+
+You can use the same layering to adjust the scales:
+
+```{r}
+ggplot(nyc, aes(x = SPAGE, y = CHOLESTEROLTOTAL, col = GENDER))+geom_point()+ scale_x_continuous(breaks = seq(20,100, 10)) + scale_y_continuous(breaks= seq(90,350,25)) +scale_color_brewer(palette = "Dark2")+theme_minimal()
+```
+
+***
+
+## Mentimeter
